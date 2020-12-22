@@ -25,6 +25,8 @@ public:
 	static vector<Point2f> intersectPoints(const Circle& circle1, const Circle &circle2);
 	// Compute intersec points of an ellipse and segment line
 	static vector<Point2f> intersectPoints(const Ellipse &e, const Point2f &p1, const Point2f &p2);
+	// Compute intersec points of a polygon and segment line
+	static vector<Point2f> intersectPoints(const Polygon &polygon, const Point2f &p1, const Point2f &p2);
 	// Compute intersect area of circle and polygon
 	static double intersectArea(const Polygon& polygon, const Circle& circle);
 	// Compute intersect area of two circle
@@ -50,7 +52,7 @@ public:
 	// Finds the minimum ellipse of a 2D points
 	static Ellipse minEllipseCoverage(const vector<Point2f>& points);
 	// Generate random simple polygon
-	static Polygon generateRandomPolygon(int edgeNum, Point2f center, int maxRadius);
+	static Polygon generateRandomPolygon(int edgeNum, Point2f center, int maxRadius, unsigned int seed = 0);
 
 private:
 	// used for triangulation

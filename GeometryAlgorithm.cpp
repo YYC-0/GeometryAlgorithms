@@ -333,6 +333,16 @@ vector<Point2f> Geom::intersectPoints(const Ellipse &e, const Point2f &p1, const
 	return points;
 }
 
+vector<Point2f> Geom::intersectPoints(const Polygon &polygon, const Point2f &p1, const Point2f &p2)
+{
+	vector<Point2f> points;
+	for (int i = 0; i <= polygon.size(); ++i)
+	{
+
+	}
+	return points;
+}
+
 // return 1 if p on the left of line l1-l2
 // 0 if p is on the line
 // -1 if p on the right
@@ -416,23 +426,15 @@ pair<Eigen::MatrixXd, Eigen::VectorXd> Geom::MinVolEllipse(Eigen::MatrixXd P, do
 	//----------------------------------
 	while (err > tolerance)
 	{
-		//cout << Eigen::MatrixXd(u.asDiagonal()) << endl << endl;
 		Eigen::MatrixXd X = Q * u.asDiagonal() * Q.transpose();
 		Eigen::VectorXd M = (Q.transpose() * X.inverse() * Q).diagonal();
-		//cout << "X: " << X << endl << endl;
-		//cout << "M: " << M << endl << endl;
 		Eigen::Index j;
 		double maximum = M.maxCoeff(&j);
-		//cout << "[maximum j]: " << maximum << ' ' << j << endl << endl;
 		double stepSize = (maximum - d - 1) / ((d + 1) * (maximum - 1));
-		//cout << "stepSize: " << stepSize << endl << endl;
 		Eigen::VectorXd new_u = (1 - stepSize) * u;
-		//cout << "new u: " << new_u << endl << endl;
 		new_u[j] = new_u[j] + stepSize;
-		//cout << "new[j] u: " << new_u[j] << endl << endl;
 		count++;
 		err = (new_u - u).norm();
-		//cout << "err: " << err << endl << endl;
 		u = new_u;
 	}
 
@@ -486,9 +488,12 @@ Ellipse Geom::minEllipseCoverage(const vector<Point2f>& points)
 // int: edge num
 // Point2f: polygon center
 // int: max Radius from center
-Polygon Geom::generateRandomPolygon(int edgeNum, Point2f center, int maxRadius)
+Polygon Geom::generateRandomPolygon(int edgeNum, Point2f center, int maxRadius, unsigned int seed)
 {
-	srand((unsigned)time(NULL));
+	if (seed == 0)
+		srand((unsigned)time(NULL));
+	else
+		srand(seed);
 	vector<Point2f> points;
 	Point2f realCenter(0, 0);
 	for (int i = 0; i < edgeNum; ++i)
@@ -729,7 +734,7 @@ bool Geom::mergeEdgeValid(Polygon polygon1, Polygon polygon2, SharedEdge & edge)
 		cout << "Please input counterclockwise polygon" << endl;
 		return false;
 	}
-	float fineAngle = 165;
+	float fineAngle = 165; //180;
 	bool valid1 = false, valid2 = false;
 	int Aminus1, Aplus1;
 	Point2f p0, p1;
