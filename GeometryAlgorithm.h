@@ -15,6 +15,18 @@ public:
 	static double dot(const Vector2f& v1, const Vector2f& v2);
 	static double cross(const Vector2f& v1, const Vector2f& v2);
 	static double angle(const Vector2f& v1, const Vector2f& v2, bool isRadian = true);
+	// Compute distance from a point to a line
+	static double distance(const Line &line, const Point2f &p);
+	// Compute distance from a point to a segment
+	static double distance(const Segment &segment, const Point2f &p);
+	// If a point p is on the left of a line l1-l2
+	static int isLeft(const Point2f &l1, const Point2f &l2, const Point2f &p);
+	// If vector v2 is left of v1
+	static int isLeft(const Vector2f &v1, const Vector2f &v2);
+	// If a point is in a circle or not
+	static bool IsInCircle(const Circle &circle, const Point2f &p);
+	// If a poitn is in a ellipse or not
+	static bool IsInEllipse(const Ellipse &ellipse, const Point2f &p);
 	// Compute circumcircle of triangle
 	static Circle circumcircleOfTriangle(Triangle2f triangle);
 	// Compute the smallest circle
@@ -31,18 +43,6 @@ public:
 	static double intersectArea(const Polygon& polygon, const Circle& circle);
 	// Compute intersect area of two circle
 	static double intersectArea(const Circle& circle1, const Circle& circle2);
-	// If a point p is on the left of a line l1-l2
-	static int isLeft(const Point2f& l1, const Point2f& l2, const Point2f& p);
-	// If vector v2 is left of v1
-	static int isLeft(const Vector2f &v1, const Vector2f &v2);
-	// Compute distance from a point to a line
-	static double distance(const Line& line, const Point2f& p);
-	// Compute distance from a point to a segment
-	static double distance(const Segment& segment, const Point2f& p);
-	// If a point is in a circle or not
-	static bool IsInCircle(const Circle& circle, const Point2f& p);
-	// If a poitn is in a ellipse or not
-	static bool IsInEllipse(const Ellipse& ellipse, const Point2f& p);
 	// Triangulation
 	static vector<Polygon> triangulation(Polygon polygon);
 	// Convex Decomposition
