@@ -103,6 +103,33 @@ Circle Geom::minCircle(vector<Point2f> points)
 	return circle;
 }
 
+// http://geomalgorithms.com/a05-_intersect-1.html
+vector<Point2f> Geom::intersectPoint(const Point2f &p11, const Point2f &p12, 
+	const Point2f &p21, const Point2f &p22)
+{
+	// 有相同点
+	if(p11 == p21 || p11 == p22 || p12 == p21 || p12 == p22)
+		return vector<Point2f>();
+
+	Vector2f u = p12 - p11;
+	Vector2f v = p22 - p21;
+	Vector2f w = p11 - p21;
+	float D = cross(u, v);
+
+	// test parallel
+	if(fabs(D) < EPS)
+		return vector<Point2f>();
+
+	float s = cross(v, w) / D;
+	if(s < 0 || s > 1)
+		return vector<Point2f>();
+	float t = cross(u, w) / D;
+	if (t < 0 || t > 1)
+		return vector<Point2f>();
+
+	return vector<Point2f>{p11 + u * s};
+}
+
 // https://www.cnblogs.com/lxglbk/archive/2012/08/12/2634192.html
 // 输入多边形需要逆时针
 double Geom::intersectArea(const Polygon & polygon, const Circle & circle)

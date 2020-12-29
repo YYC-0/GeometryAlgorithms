@@ -32,6 +32,8 @@ public:
 	static Circle circumcircleOfTriangle(Triangle2f triangle);
 	// Compute the smallest circle
 	static Circle minCircle(vector<Point2f> points);
+	// Compute intersec points of two segment line
+	static vector<Point2f> intersectPoint(const Point2f &p11, const Point2f &p12, const Point2f &p21, const Point2f &p22);
 	// Compute intersec points of a circle and segment line
 	static vector<Point2f> intersectPoints(const Circle& circle, const Point2f& p1, const Point2f& p2);
 	// Compute intersect points of two circles
@@ -57,7 +59,7 @@ public:
 	// Convex shape decomposition
 	static vector<Polygon> ConvexShapeDecomposition(const Polygon &polygon, int t, double eps);
 	// Compute shorest path
-	static vector<int> ShorestPathDijkstra(Graph graph, int beginIdx, int endIdx);
+	static vector<int> ShorestPathDijkstra(const Graph &graph, int beginIdx, int endIdx);
 
 private:
 	// used for triangulation
@@ -81,5 +83,6 @@ private:
 	static Polygon mergePolygon(Polygon polygon1, Polygon polygon2, SharedEdge& edge);
 
 	// used for ConvexShapeDecomposition
-	
+	// Compute shorest path in a polygon
+	static vector<Point2f> ShorestPath(Polygon polygon, int beginIdx, int endIdx);
 };
