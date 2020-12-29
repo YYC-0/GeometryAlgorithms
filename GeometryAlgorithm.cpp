@@ -4,8 +4,10 @@
 #include <cstdlib>
 #include <time.h>
 #include <iostream>
+#include <set>
 #include <assert.h>
 const double EPS = 1.0e-8;
+using namespace Geometry;
 
 double Geom::squareDis(const Point2f & p1, const Point2f & p2)
 {
@@ -536,6 +538,97 @@ Polygon Geom::generateRandomPolygon(int edgeNum, Point2f center, int maxRadius, 
 	return Polygon(points);
 }
 
+// https://ieeexplore.ieee.org/document/5540225/citations
+vector<Polygon> Geom::ConvexShapeDecomposition(const Polygon &polygon, int t, double eps)
+{
+	vector<Point2f> points;
+	float pointDis = 1.0;
+	for (int i = 0; i < polygon.size(); ++i)
+	{
+		Point2f p1 = polygon[i];
+		Point2f p2 = polygon[(i + 1) % polygon.size()];
+		Vector2f v = p2 - p1;
+		int pointNum = v.length() / pointDis;
+		v.normalize();
+		for (float j = 0; j < pointNum; ++j)
+		{
+			Point2f p = p1 + v * j * pointDis;
+			points.push_back(p);
+		}
+	}
+
+	// 1. 
+	vector<Vector2f> morseDirs;
+	double angleIterval = 2.0 * PI / t;
+	for (int i = 0; i < t; ++i)
+	{
+		double theta = PI / 2.0 + i * angleIterval;
+		morseDirs.push_back(Vector2f(cos(theta), sin(theta)));
+	}
+
+	// 2
+	set<pair<Point2f, Point2f>> mutexPairs;
+	set< pair<Point2f, Point2f>> cuts;
+	for (int i = 0; i < t; ++i)
+	{
+		
+	}
+
+	return vector<Polygon>();
+}
+
+vector<int> Geom::ShorestPathDijkstra(const Graph &graph, int beginIdx, int endIdx)
+{
+	int vertexNum = graph.getVertexNum();
+	assert(beginIdx >= 0 && beginIdx < vertexNum && endIdx >= 0 && endIdx < vertexNum);
+
+	vector<float> pathLengths(vertexNum, 0);
+	vector<bool> visited(vertexNum, false);
+	vector<vector<int>> paths(vertexNum);
+
+	//首先初始化我们的dis数组
+	for (int i = 0; i < vertexNum; i++)
+	{
+		pathLengths[i] = graph.getWeight(beginIdx, i);
+		paths[i].push_back(beginIdx);
+		paths[i].push_back(i);
+	}
+	//设置起点的到起点的路径为0
+	pathLengths[beginIdx] = 0;
+	visited[beginIdx] = true;
+
+	int count = 1;
+	//计算剩余的顶点的最短路径（剩余this->vexnum-1个顶点）
+	while (count != vertexNum) {
+		//temp用于保存当前dis数组中最小的那个下标
+		//min记录的当前的最小值
+		int temp = 0;
+		float min = INFINITY;
+		for (int i = 0; i < vertexNum; i++) {
+			if (!visited[i] && pathLengths[i] < min) {
+				min = pathLengths[i];
+				temp = i;
+			}
+		}
+		//cout << temp + 1 << "  "<<min << endl;
+		//把temp对应的顶点加入到已经找到的最短路径的集合中
+		visited[temp] = true;
+		++count;
+		for (int i = 0; i < vertexNum; i++) {
+			//注意这里的条件arc[temp][i]!=INT_MAX必须加，不然会出现溢出，从而造成程序异常
+			if (!visited[i] && graph.getWeight(temp, i) != INFINITY && 
+				(pathLengths[temp] + graph.getWeight(temp, i)) < pathLengths[i]) {
+				//如果新得到的边可以影响其他为访问的顶点，那就就更新它的最短路径和长度
+				pathLengths[i] = pathLengths[temp] + graph.getWeight(temp, i);
+				paths[i] = paths[temp];
+				paths[i].push_back(i);
+			}
+		}
+	}
+
+	return paths[endIdx];
+}
+
 void Geom::tri_recursive(Polygon polygon, vector<Polygon>& triangles)
 {
 	if (polygon.is_empty())
@@ -685,6 +778,22 @@ Polygon Geom::mergePolygon(Polygon polygon1, Polygon polygon2, SharedEdge & edge
 			mergedPolygon.push_back(polygon2[i]);
 
 	return mergedPolygon;
+}
+
+vector<Point2f> Geom::ShorestPath(Polygon polygon, int beginIdx, int endIdx)
+{
+	assert(beginIdx >= 0 && beginIdx < polygon.size() && endIdx >= 0 && endIdx < polygon.size());
+
+	Graph graph(polygon.size());
+	for (int i = 0; i < polygon.size(); ++i)
+	{
+		for (int j = 0; j < polygon.size(); ++j)
+		{
+			;
+		}
+	}
+
+	return vector<Point2f>();
 }
 
 // if polygon1 and polygon has shared edge

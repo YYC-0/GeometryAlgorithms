@@ -4,6 +4,7 @@
 #include <vector>
 #include <Eigen/Dense>
 using namespace std;
+using namespace Geometry;
 
 class Geom
 {
@@ -53,6 +54,10 @@ public:
 	static Ellipse minEllipseCoverage(const vector<Point2f>& points);
 	// Generate random simple polygon
 	static Polygon generateRandomPolygon(int edgeNum, Point2f center, int maxRadius, unsigned int seed = 0);
+	// Convex shape decomposition
+	static vector<Polygon> ConvexShapeDecomposition(const Polygon &polygon, int t, double eps);
+	// Compute shorest path
+	static vector<int> ShorestPathDijkstra(Graph graph, int beginIdx, int endIdx);
 
 private:
 	// used for triangulation
@@ -74,4 +79,7 @@ private:
 	static bool shared_edge(Polygon polygon1, Polygon polygon2, SharedEdge& edge);
 	static bool mergeEdgeValid(Polygon polygon1, Polygon polygon2, SharedEdge& edge);
 	static Polygon mergePolygon(Polygon polygon1, Polygon polygon2, SharedEdge& edge);
+
+	// used for ConvexShapeDecomposition
+	
 };
