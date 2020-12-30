@@ -26,14 +26,16 @@ public:
 	static int isLeft(const Vector2f &v1, const Vector2f &v2);
 	// If a point is in a circle or not
 	static bool IsInCircle(const Circle &circle, const Point2f &p);
-	// If a poitn is in a ellipse or not
+	// If a point is in a ellipse or not
 	static bool IsInEllipse(const Ellipse &ellipse, const Point2f &p);
+	// If a point is in a polygon or not
+	static bool IsInPolygon(const Polygon &polygon, const Point2f &p);
 	// Compute circumcircle of triangle
 	static Circle circumcircleOfTriangle(Triangle2f triangle);
 	// Compute the smallest circle
 	static Circle minCircle(vector<Point2f> points);
 	// Compute intersec points of two segment line
-	static vector<Point2f> intersectPoint(const Point2f &p11, const Point2f &p12, const Point2f &p21, const Point2f &p22);
+	static pair<int, Point2f> intersectPoint(const Point2f &p11, const Point2f &p12, const Point2f &p21, const Point2f &p22);
 	// Compute intersec points of a circle and segment line
 	static vector<Point2f> intersectPoints(const Circle& circle, const Point2f& p1, const Point2f& p2);
 	// Compute intersect points of two circles
@@ -61,7 +63,7 @@ public:
 	// Compute shorest path
 	static vector<int> ShorestPathDijkstra(const Graph &graph, int beginIdx, int endIdx);
 
-private:
+public:
 	// used for triangulation
 	static void tri_recursive(Polygon polygon, vector<Polygon>& triangles);
 	static bool edge_valid(const Polygon &polygon, int idx1, int idx2);
@@ -84,5 +86,5 @@ private:
 
 	// used for ConvexShapeDecomposition
 	// Compute shorest path in a polygon
-	static vector<Point2f> ShorestPath(Polygon polygon, int beginIdx, int endIdx);
+	static vector<Point2f> ShorestPath(const Polygon &polygon, int beginIdx, int endIdx);
 };

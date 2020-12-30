@@ -195,10 +195,21 @@ namespace Geometry
 
 	void Graph::print() const
 	{
+		cout << '\t';
+		for (int i = 0; i < vertexNum; ++i)
+			cout << i << '\t';
+		cout << endl;
 		for (int i = 0; i < vertexNum; ++i)
 		{
+			cout << i << '\t';
 			for (int j = 0; j < vertexNum; ++j)
-				cout << weights[i][j] << ' ';
+			{
+				if (weights[i][j] == INFINITY)
+					cout << "¡Þ";
+				else
+					cout << weights[i][j];
+				cout << '\t';
+			}
 			cout << endl;
 		}
 	}

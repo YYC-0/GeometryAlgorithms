@@ -104,12 +104,13 @@ Circle Geom::minCircle(vector<Point2f> points)
 }
 
 // http://geomalgorithms.com/a05-_intersect-1.html
-vector<Point2f> Geom::intersectPoint(const Point2f &p11, const Point2f &p12, 
+// 返回值：0为无交点，1为有交点，2为共线
+pair<int, Point2f> Geom::intersectPoint(const Point2f &p11, const Point2f &p12,
 	const Point2f &p21, const Point2f &p22)
 {
 	// 有相同点
-	if(p11 == p21 || p11 == p22 || p12 == p21 || p12 == p22)
-		return vector<Point2f>();
+	if (p11 == p21 || p11 == p22 || p12 == p21 || p12 == p22)
+		return { 0, Point2f() };
 
 	Vector2f u = p12 - p11;
 	Vector2f v = p22 - p21;
@@ -117,17 +118,44 @@ vector<Point2f> Geom::intersectPoint(const Point2f &p11, const Point2f &p12,
 	float D = cross(u, v);
 
 	// test parallel
-	if(fabs(D) < EPS)
-		return vector<Point2f>();
+	if (fabs(D) < EPS)
+	{
+		// 判断共线
+		float t0, t1;
+		Vector2f w2 = p12 - p21;
+		if (v.x != 0)
+		{
+			t0 = w.x / v.x;
+			t1 = w2.x / v.x;
+		}
+		else
+		{
+			t0 = w.y / v.y;
+			t1 = w2.y / v.y;
+		}
+		if (t0 > t1)
+		{
+			// swap
+			float t = t0; 
+			t0 = t1; 
+			t1 = t;
+		}
+		if (t0 > 1 || t1 < 0) 
+		{
+			return { 0, Point2f() };      // NO overlap
+		}
+
+		return { 2, Point2f() }; // overlap
+	}
 
 	float s = cross(v, w) / D;
-	if(s < 0 || s > 1)
-		return vector<Point2f>();
+	if(s < 0 || s > 1.0)
+		return { 0, Point2f() };
 	float t = cross(u, w) / D;
-	if (t < 0 || t > 1)
-		return vector<Point2f>();
+	if (t < 0 || t > 1.0)
+		return { 0, Point2f() };
 
-	return vector<Point2f>{p11 + u * s};
+	return { 1, p11 + u * s };
 }
 
 // https://www.cnblogs.com/lxglbk/archive/2012/08/12/2634192.html
@@ -365,9 +393,17 @@ vector<Point2f> Geom::intersectPoints(const Ellipse &e, const Point2f &p1, const
 vector<Point2f> Geom::intersectPoints(const Polygon &polygon, const Point2f &p1, const Point2f &p2)
 {
 	vector<Point2f> points;
-	for (int i = 0; i <= polygon.size(); ++i)
+	for (int i = 0; i < polygon.size(); ++i)
 	{
-
+		pair<int, Point2f> point = intersectPoint(p1, p2, polygon[i], polygon[(i + 1) % polygon.size()]);
+		if (point.first == 1)
+			points.push_back(point.second);
+		else if (point.first == 2)
+		{ 
+			// 有问题
+			points.push_back(polygon[i]);
+			points.push_back(polygon[(i + 1) % polygon.size()]);
+		}
 	}
 	return points;
 }
@@ -613,7 +649,7 @@ vector<int> Geom::ShorestPathDijkstra(const Graph &graph, int beginIdx, int endI
 	vector<bool> visited(vertexNum, false);
 	vector<vector<int>> paths(vertexNum);
 
-	//首先初始化我们的dis数组
+	// initialization
 	for (int i = 0; i < vertexNum; i++)
 	{
 		pathLengths[i] = graph.getWeight(beginIdx, i);
@@ -624,9 +660,9 @@ vector<int> Geom::ShorestPathDijkstra(const Graph &graph, int beginIdx, int endI
 	pathLengths[beginIdx] = 0;
 	visited[beginIdx] = true;
 
-	int count = 1;
 	//计算剩余的顶点的最短路径（剩余this->vexnum-1个顶点）
-	while (count != vertexNum) {
+	for(int count = 1; count <= vertexNum; ++count)
+	{
 		//temp用于保存当前dis数组中最小的那个下标
 		//min记录的当前的最小值
 		int temp = 0;
@@ -640,7 +676,6 @@ vector<int> Geom::ShorestPathDijkstra(const Graph &graph, int beginIdx, int endI
 		//cout << temp + 1 << "  "<<min << endl;
 		//把temp对应的顶点加入到已经找到的最短路径的集合中
 		visited[temp] = true;
-		++count;
 		for (int i = 0; i < vertexNum; i++) {
 			//注意这里的条件arc[temp][i]!=INT_MAX必须加，不然会出现溢出，从而造成程序异常
 			if (!visited[i] && graph.getWeight(temp, i) != INFINITY && 
@@ -807,20 +842,45 @@ Polygon Geom::mergePolygon(Polygon polygon1, Polygon polygon2, SharedEdge & edge
 	return mergedPolygon;
 }
 
-vector<Point2f> Geom::ShorestPath(Polygon polygon, int beginIdx, int endIdx)
+// 多边形两个顶点的最短路径
+// 顶点间能直接相连添加边建图，用Dijkstra算法求解
+vector<Point2f> Geom::ShorestPath(const Polygon &polygon, int beginIdx, int endIdx)
 {
 	assert(beginIdx >= 0 && beginIdx < polygon.size() && endIdx >= 0 && endIdx < polygon.size());
 
 	Graph graph(polygon.size());
 	for (int i = 0; i < polygon.size(); ++i)
 	{
-		for (int j = 0; j < polygon.size(); ++j)
+		for (int j = i+1; j < polygon.size(); ++j)
 		{
-			;
+			// 两个顶点可以在多边形内部直接连接
+			if (j == (i + 1) % polygon.size() || i == (j + 1) % polygon.size())
+			{
+				float weight = distance(polygon[i], polygon[j]);
+				graph.addEdge(i, j, weight);
+				graph.addEdge(j, i, weight);
+				continue;
+			}
+
+			if (intersectPoints(polygon, polygon[i], polygon[j]).empty())
+			{
+				Point2f mid = (polygon[i] + polygon[j]) / 2.0;
+				if (IsInPolygon(polygon, mid))
+				{
+					float weight = distance(polygon[i], polygon[j]);
+					graph.addEdge(i, j, weight);
+					graph.addEdge(j, i, weight);
+				}
+			}
 		}
 	}
+	//graph.print();
+	vector<int> pathIdxes = ShorestPathDijkstra(graph, beginIdx, endIdx);
+	vector<Point2f> path;
+	for (int idx : pathIdxes)
+		path.push_back(polygon[idx]);
 
-	return vector<Point2f>();
+	return path;
 }
 
 // if polygon1 and polygon has shared edge
@@ -938,4 +998,29 @@ bool Geom::IsInEllipse(const Ellipse & ellipse, const Point2f & p)
 	double t1 = pow((p.x - m) * cos(angle) + (p.y - n) * sin(angle), 2);
 	double t2 = pow((m - p.x) * sin(angle) + (p.y - n) * cos(angle), 2);
 	return t1 / (a * a) + t2 / (b * b) < 1;
+}
+
+// Crossing Number method
+bool Geom::IsInPolygon(const Polygon &polygon, const Point2f &p)
+{
+	int count = 0;
+	//Edge Crossing Rules
+	//1. an upward edge includes its starting endpoint, andexcludes its final endpoint;
+	//2. a downward edge excludes its starting endpoint, andincludes its final endpoint;
+	//3. horizontal edges are excluded
+	//4. the edge - ray intersection point must be strictly right of the point P.
+	for (int i = 0; i < polygon.size(); ++i)
+	{
+		Point2f p1 = polygon[i];
+		Point2f p2 = polygon[(i + 1) % polygon.size()];
+		Vector2f v = p2 - p1;
+		if ((p1.y <= p.y && p2.y > p.y) || // an upward crossing
+			(p1.y > p.y && p2.y <= p.y)) // an downward crossing
+		{
+			float vt = (p.y - p1.y) / (p2.y - p1.y);
+			if (p.x < p1.x + vt * (p2.x - p1.x)) // P.x < intersect
+				++count;
+		}
+	}
+	return (count & 1); // 0 if even (out), and 1 if  odd (in)
 }
